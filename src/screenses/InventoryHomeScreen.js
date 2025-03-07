@@ -1,4 +1,4 @@
-// src/app/index.tsx
+// src/screens/InventoryHomeScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -7,13 +7,11 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
 import { getAllInventoryItems } from "../utils/storage";
 
-export default function InventoryHome() {
+export default function InventoryHomeScreen({ navigation }) {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   const loadInventory = async () => {
     setLoading(true);
@@ -24,15 +22,19 @@ export default function InventoryHome() {
 
   useEffect(() => {
     loadInventory();
-  }, []);
+
+    // Refresh inventory when screen comes into focus
+    const unsubscribe = navigation.addListener("focus", loadInventory);
+    return unsubscribe;
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>NFC Inventory Management</Text>
+      <Text style={styles.title}>Inventory Management</Text>
 
       <TouchableOpacity
         style={styles.scanButton}
-        onPress={() => router.push("/scan")}
+        onPress={() => navigation.navigate("ScanItem")}
       >
         <Text style={styles.buttonText}>Scan New Item</Text>
       </TouchableOpacity>
@@ -51,10 +53,7 @@ export default function InventoryHome() {
             <TouchableOpacity
               style={styles.itemCard}
               onPress={() =>
-                router.push({
-                  pathname: "/itemDetails",
-                  params: { tagId: item.tagId },
-                })
+                navigation.navigate("ItemDetails", { tagId: item.tagId })
               }
             >
               <Text style={styles.itemName}>{item.name}</Text>
@@ -66,13 +65,6 @@ export default function InventoryHome() {
           )}
         />
       )}
-
-      <TouchableOpacity
-        style={styles.reportButton}
-        onPress={() => router.push("/reports")}
-      >
-        <Text style={styles.buttonText}>Generate Reports</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -94,13 +86,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
-    alignItems: "center",
-  },
-  reportButton: {
-    backgroundColor: "#34C759",
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
     alignItems: "center",
   },
   buttonText: {
